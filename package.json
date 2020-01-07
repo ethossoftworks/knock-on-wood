@@ -1,0 +1,28 @@
+{
+    "name": "knock-on-wood",
+    "description": "A simple test framework for TypeScript",
+    "authors": "Ryan Mitchener",
+    "version": "1.0.0",
+    "license": "MIT",
+    "devDependencies": {
+        "webpack": "^4.41.5",
+        "webpack-cli": "^3.3.10"
+    },
+    "dependencies": {
+        "prettier": "^1.19.1",
+        "ts-loader": "^6.2.1",
+        "typescript": "3.7.4"
+    },
+    "scripts": {
+        "format": "npx prettier --write --loglevel warn src/**/*.ts test/**/*.ts",
+        "build": "yarn format && npx webpack --env prod",
+        "test": "yarn format && npx webpack --env test && node dist/KnockOnWood.test.js",
+        "test-inspect": "yarn format && npx webpack --env test && node --inspect-brk dist/KnockOnWood.test.js"
+    },
+    "prettier": {
+        "semi": false,
+        "printWidth": 120,
+        "tabWidth": 4,
+        "useTabs": false
+    }
+}

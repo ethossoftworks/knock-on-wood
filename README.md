@@ -1,2 +1,2 @@
-# knock-on-wood
+# Knock On Wood
 A simple testing framework for TypeScript
