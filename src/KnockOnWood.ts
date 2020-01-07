@@ -4,10 +4,10 @@ export type TestGroup<Context> = {
     context: Context
     tests: Tests<Context>
     label?: string
-    beforeEach?: (context: Context) => void
-    afterEach?: (context: Context) => void
-    beforeAll?: (context: Context) => void
-    afterAll?: (context: Context) => void
+    beforeEach?: (context: Context) => Promise<void>
+    afterEach?: (context: Context) => Promise<void>
+    beforeAll?: (context: Context) => Promise<void>
+    afterAll?: (context: Context) => Promise<void>
 }
 
 export type Test<Context> = (t: TestContainer<Context>) => Promise<void>
@@ -45,7 +45,7 @@ export async function runTests(...testGroups: TestGroup<unknown>[]) {
 
     console.log(
         fmt(
-            `\nFinished all test groups: ${counts.totalPassed} of ${counts.totalTests} passed`,
+            `\nFinished all test groups: ${counts.totalPassed} of ${counts.totalTests} tests passed`,
             counts.totalPassed === counts.totalTests ? Format.green : Format.red,
             Format.bold,
             Format.inverse
@@ -57,36 +57,38 @@ export async function runTests(...testGroups: TestGroup<unknown>[]) {
     }
 }
 
-export async function runTestsForResult(...testGroups: TestGroup<unknown>[]) {
-    runTests(...testGroups)
-}
-
 async function runGroup(counts: Counts, group: TestGroup<unknown>) {
-    const singleTests: string[] = Object.getOwnPropertyNames(group.tests).filter(testName => {
-        return testName.indexOf("_") === 0
-    })
-    const testNames: string[] = singleTests.length > 0 ? singleTests : Object.getOwnPropertyNames(group.tests)
+    const testNames: string[] = (() => {
+        const singleTests: string[] = Object.getOwnPropertyNames(group.tests).filter(testName => {
+            return testName.indexOf("_") === 0
+        })
+        return singleTests.length > 0 ? singleTests : Object.getOwnPropertyNames(group.tests)
+    })()
     const context = group.context
     counts.totalTests += testNames.length
     counts.groupTests = testNames.length
+    counts.groupPassed = 0
 
     console.group(
         `Running Group (${counts.currentGroupNumber} of ${counts.totalGroups})${group.label ? ": " + group.label : ""}`
     )
-    group.beforeAll?.(context)
+
+    await group.beforeAll?.(context)
 
     for (let i = 0; i < testNames.length; i++) {
-        group.beforeEach?.(context)
         counts.currentTestNumber = i + 1
+
+        await group.beforeEach?.(context)
         await runTest(counts, testNames[i], group.tests[testNames[i]], context)
-        group.afterEach?.(context)
+        await group.afterEach?.(context)
     }
 
-    group.afterAll?.(context)
+    await group.afterAll?.(context)
+
     console.groupEnd()
     console.log(
         fmt(
-            `Finished tests: ${counts.groupPassed} of ${testNames.length} passed`,
+            `Finished group: ${counts.groupPassed} of ${testNames.length} tests passed`,
             counts.groupPassed === testNames.length ? Format.green : Format.red
         )
     )

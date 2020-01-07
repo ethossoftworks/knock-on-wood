@@ -16,12 +16,6 @@ const testContext2: Context = {
 }
 
 const mainTests: Tests<Context> = {
-    testFail: async ({ fail }) => {
-        fail()
-    },
-    testAssertFail: async ({ assert }) => {
-        assert(false)
-    },
     testAssertPass: async ({ assert }) => {
         assert(true)
     },
@@ -30,10 +24,22 @@ const mainTests: Tests<Context> = {
     }
 }
 
-const extraTests: Tests<Context> = {}
+const extraTests: Tests<Context> = {
+    testFail: async ({ fail }) => {
+        fail()
+    },
+    testAssertFail: async ({ assert }) => {
+        assert(false)
+    },
+    testNothing: async () => {}
+}
 
 const group1: TestGroup<Context> = {
     context: testContext1,
+    beforeAll: async context => {},
+    afterAll: async context => {},
+    beforeEach: async context => {},
+    afterEach: async context => {},
     tests: {
         ...mainTests
     }
@@ -48,3 +54,5 @@ const group2: TestGroup<Context> = {
 }
 
 runTests(group1, group2)
+// .then(() => {})
+// .catch(() => {})
