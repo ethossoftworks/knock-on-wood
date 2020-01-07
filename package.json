@@ -1,18 +1,26 @@
 {
-    "name": "knock-on-wood",
+    "name": "@ethossoftworks/knock-on-wood",
     "description": "A simple test framework for TypeScript",
     "authors": "Ryan Mitchener",
     "version": "1.0.0",
     "license": "MIT",
+    "repository": {
+        "url": "https://github.com/ethossoftworks/knock-on-wood.git"
+    },
+    "main": "dist/KnockOnWood.js",
+    "files": [
+        "dist/types/src/KnockOnWood.d.ts"
+    ],
     "devDependencies": {
         "webpack": "^4.41.5",
-        "webpack-cli": "^3.3.10"
-    },
-    "dependencies": {
+        "webpack-cli": "^3.3.10",
+        "clean-webpack-plugin": "3.0.0",
         "prettier": "^1.19.1",
         "ts-loader": "^6.2.1",
         "typescript": "3.7.4"
     },
+    "types": "dist/types/KnockOnWood.d.ts",
+    "dependencies": {},
     "scripts": {
         "format": "npx prettier --write --loglevel warn src/**/*.ts test/**/*.ts",
         "build": "yarn format && npx webpack --env prod",

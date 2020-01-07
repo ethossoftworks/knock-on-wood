@@ -1,4 +1,5 @@
 const path = require("path")
+const { CleanWebpackPlugin } = require("clean-webpack-plugin")
 
 const packageName = "KnockOnWood"
 
@@ -16,8 +17,9 @@ const prodConfig = {
         ]
     },
     resolve: {
-        extensions: [".tsx", ".ts", ".js"]
+        extensions: [".tsx", ".ts", ".js", ".jsx"]
     },
+    plugins: [new CleanWebpackPlugin()],
     output: {
         filename: `${packageName}.js`,
         path: path.resolve(__dirname, "dist")
