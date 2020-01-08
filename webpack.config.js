@@ -22,7 +22,10 @@ const prodConfig = {
     plugins: [new CleanWebpackPlugin()],
     output: {
         filename: `${packageName}.js`,
-        path: path.resolve(__dirname, "dist")
+        path: path.resolve(__dirname, "dist"),
+        library: "KnockOnWood",
+        libraryTarget: "umd",
+        globalObject: "this"
     }
 }
 
