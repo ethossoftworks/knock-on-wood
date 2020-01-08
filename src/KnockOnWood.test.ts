@@ -5,6 +5,10 @@ type Context = {
     bar: number
 }
 
+type Context2 = {
+    foobar: string
+}
+
 const testContext1: Context = {
     foo: "One",
     bar: 1
@@ -13,6 +17,10 @@ const testContext1: Context = {
 const testContext2: Context = {
     foo: "Two",
     bar: 2
+}
+
+const testContext3: Context2 = {
+    foobar: "foobar"
 }
 
 const mainTests: Tests<Context> = {
@@ -53,6 +61,15 @@ const group2: TestGroup<Context> = {
     }
 }
 
-runTests(group1, group2)
-// .then(() => {})
-// .catch(() => {})
+const group3: TestGroup<Context2> = {
+    context: testContext3,
+    tests: {
+        testDifferentContextPerGroup: async ({ context, assert }) => {
+            assert(context.foobar === "foobar")
+        }
+    }
+}
+
+runTests(group1, group2, group3)
+    .then(() => {})
+    .catch(() => {})

@@ -9,8 +9,5 @@
         "outDir": "./dist",
         "sourceMap": true,
         "jsx": "react"
-    },
-    "exclude": [
-        "node_modules"
-    ]
+    }
 }
