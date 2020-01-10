@@ -2,11 +2,15 @@
     "name": "@ethossoftworks/knock-on-wood",
     "description": "A simple test framework for TypeScript",
     "authors": "Ryan Mitchener",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "license": "MIT",
     "repository": {
         "url": "https://github.com/ethossoftworks/knock-on-wood.git"
     },
+    "keywords": [
+        "testing",
+        "typescript"
+    ],
     "main": "dist/KnockOnWood.js",
     "files": [
         "dist/types/src/KnockOnWood.d.ts"
