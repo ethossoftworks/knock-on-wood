@@ -1,13 +1,13 @@
 import { fmt, Text as Format } from "./Format"
 
-export type TestGroup<Context> = {
-    context: Context
-    tests: Tests<Context>
+export type TestGroup<C> = {
+    context: C
+    tests: Tests<C>
     label?: string
-    beforeEach?: (context: Context) => Promise<void>
-    afterEach?: (context: Context) => Promise<void>
-    beforeAll?: (context: Context) => Promise<void>
-    afterAll?: (context: Context) => Promise<void>
+    beforeEach?: (context: C) => Promise<void>
+    afterEach?: (context: C) => Promise<void>
+    beforeAll?: (context: C) => Promise<void>
+    afterAll?: (context: C) => Promise<void>
 }
 
 export type Test<Context> = (t: TestContainer<Context>) => Promise<void>
@@ -34,7 +34,7 @@ class Counts {
     currentTestNumber = 0
 }
 
-export async function runTests(...testGroups: TestGroup<unknown>[]) {
+export async function runTests(...testGroups: TestGroup<any>[]) {
     const counts = new Counts()
     counts.totalGroups = testGroups.length
 
@@ -57,7 +57,7 @@ export async function runTests(...testGroups: TestGroup<unknown>[]) {
     }
 }
 
-async function runGroup(counts: Counts, group: TestGroup<unknown>) {
+async function runGroup<C>(counts: Counts, group: TestGroup<C>) {
     const testNames: string[] = (() => {
         const singleTests: string[] = Object.getOwnPropertyNames(group.tests).filter(testName => {
             return testName.indexOf("_") === 0
@@ -94,7 +94,7 @@ async function runGroup(counts: Counts, group: TestGroup<unknown>) {
     )
 }
 
-async function runTest(counts: Counts, testName: string, test: Test<unknown>, context: unknown) {
+async function runTest<C>(counts: Counts, testName: string, test: Test<C>, context: C) {
     const testResult: TestResult = { failed: false }
     const testContainer = createTestContainer(context, testResult)
 
@@ -115,7 +115,7 @@ async function runTest(counts: Counts, testName: string, test: Test<unknown>, co
     }
 }
 
-function createTestContainer(context: unknown, result: TestResult): TestContainer<unknown> {
+function createTestContainer<C>(context: C, result: TestResult): TestContainer<C> {
     return {
         context: context,
         fail: (reason?: string) => {
