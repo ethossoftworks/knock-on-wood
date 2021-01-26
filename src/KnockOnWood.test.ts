@@ -43,11 +43,11 @@ function group2() {
     test("This shouldn't run 3", () => {})
 }
 
-function callbacksGroup() {
-    let beforeEachCount = 0
-    let afterEachCount = 0
-    let allCount = 0
+let beforeEachCount = 0
+let afterEachCount = 0
+let allCount = 0
 
+function callbacksGroup() {
     beforeEach(async () => {
         await new Promise((resolve) => setTimeout(resolve, 250))
         beforeEachCount++
@@ -84,4 +84,12 @@ function callbacksGroup() {
     })
 }
 
-runTests({ "Group 1": group1, "Group 2": group2, Callbacks: callbacksGroup })
+function postCallbackGroup() {
+    test("Callbacks Reset", () => {
+        expect(beforeEachCount, 3, "Before Each count was wrong")
+        expect(afterEachCount, 3, "After Each count was wrong")
+        expect(allCount, 0, "All Count was wrong")
+    })
+}
+
+runTests({ "Group 1": group1, "Group 2": group2, Callbacks: callbacksGroup, "Post Callbacks": postCallbackGroup })
