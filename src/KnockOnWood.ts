@@ -31,6 +31,11 @@ class TestRunnerContext {
 
 const context = new TestRunnerContext()
 
+/**
+ * Run groups of tests
+ *
+ * @param groups The groups of tests to run
+ */
 export async function runTests(groups: Record<string, () => void>) {
     const allStart = new Date().getTime()
     context.totalGroups = Object.keys(groups).length
@@ -115,29 +120,76 @@ async function runTest(testName: string, test: Test) {
     }
 }
 
+/**
+ * Runs the given function before each test in a group
+ */
 export const beforeEach = (func: () => Promise<void> | void) => (context.beforeEach = func)
+
+/**
+ * Runs the given function after each test in a group
+ */
 export const afterEach = (func: () => Promise<void> | void) => (context.afterEach = func)
+
+/**
+ * Runs the given function before running any test in a group
+ */
 export const beforeAll = (func: () => Promise<void> | void) => (context.beforeAll = func)
+
+/**
+ * Runs the given function after running all tests in a group
+ * @param func
+ */
 export const afterAll = (func: () => Promise<void> | void) => (context.afterAll = func)
 
+/**
+ * Enqueue a test to be run
+ *
+ * @param testName The user-friendly test name (this must be unique in the group)
+ * @param test The test function to run
+ */
 export const test = async (testName: string, test: Test) => {
     if (context.tests.has(testName)) throw new DuplicateTestError(testName)
     context.tests.set(testName, test)
 }
 
+/**
+ * Ignore all other tests and only run tests with the preceding _. This is useful when you are trying to debug a single
+ * test
+ *
+ * @param testName The user-friendly test name (this must be unique in the group)
+ * @param test The test function to run
+ */
 export const _test = async (testName: string, test: Test) => {
     if (context.onlyTests.has(testName)) throw new DuplicateTestError(testName)
     context.onlyTests.set(testName, test)
 }
 
+/**
+ * Fails the current test
+ *
+ * @param message The reason the test failed
+ */
 export function fail(message?: string) {
     throw new TestFailure(message)
 }
 
+/**
+ * Assert a value is equivalent to another value and fail the test if they don't match
+ *
+ * @param value The value to be tested
+ * @param assert The value to be tested against
+ * @param message The message to be displayed if the assertion fails
+ */
 export function expect(value: any, assert: any, message?: string) {
     if (value !== assert) throw new TestFailure(message)
 }
 
+/**
+ * Assert a condition is true and fail the test if it is false
+ *
+ * @param condition The condition to verify
+ * @param message The message to be displayed if the assertion fails
+ */
 export const assert = (condition: boolean, message?: string) => expect(condition, true, message)
 
 export class DuplicateTestError extends Error {
@@ -146,7 +198,7 @@ export class DuplicateTestError extends Error {
     }
 }
 
-export class TestFailure extends Error {
+class TestFailure extends Error {
     constructor(message?: string) {
         super(message)
     }
