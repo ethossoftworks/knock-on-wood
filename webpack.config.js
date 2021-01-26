@@ -12,12 +12,12 @@ const prodConfig = {
             {
                 test: /\.tsx?$/,
                 use: "ts-loader",
-                exclude: /node_modules/
-            }
-        ]
+                exclude: /node_modules/,
+            },
+        ],
     },
     resolve: {
-        extensions: [".tsx", ".ts", ".js", ".jsx"]
+        extensions: [".tsx", ".ts", ".js", ".jsx"],
     },
     plugins: [new CleanWebpackPlugin()],
     output: {
@@ -25,8 +25,8 @@ const prodConfig = {
         path: path.resolve(__dirname, "dist"),
         library: "KnockOnWood",
         libraryTarget: "umd",
-        globalObject: "this"
-    }
+        globalObject: "this",
+    },
 }
 
 const testConfig = {
@@ -37,16 +37,9 @@ const testConfig = {
         target: "node",
         output: {
             filename: `${packageName}.test.js`,
-            path: path.resolve(__dirname, "dist")
-        }
-    }
+            path: path.resolve(__dirname, "dist"),
+        },
+    },
 }
 
-module.exports = env => {
-    switch (env) {
-        case "prod":
-            return prodConfig
-        case "test":
-            return testConfig
-    }
-}
+module.exports = (env) => (env.prod ? prodConfig : testConfig)
