@@ -11,11 +11,11 @@
         "testing",
         "typescript"
     ],
-    "main": "dist/KnockOnWood.js",
+    "main": "KnockOnWood.js",
     "files": [
-        "dist/types/src/KnockOnWood.d.ts"
+        "types/src/KnockOnWood.d.ts"
     ],
-    "types": "dist/types/src/KnockOnWood.d.ts",
+    "types": "types/src/KnockOnWood.d.ts",
     "devDependencies": {
         "clean-webpack-plugin": "^3.0.0",
         "copy-webpack-plugin": "^7.0.0",
@@ -29,10 +29,10 @@
     "scripts": {
         "format": "npx prettier --write --loglevel warn src/**/*.ts",
         "build": "yarn format && npx webpack --env prod",
-        "build-pack": "yarn build && cd ./build/dist && npm pack",
-        "build-publish": "yarn build && cd ./build/dist && npm publish --access public",
-        "test": "yarn format && npx webpack --env test && node dist/KnockOnWood.test.js",
-        "test-inspect": "yarn format && npx webpack --env test && node --inspect-brk dist/KnockOnWood.test.js"
+        "build-pack": "yarn build && cd ./build && npm pack",
+        "build-publish": "yarn build && cd ./build && npm publish --access public",
+        "test": "yarn format && npx webpack --env test && node build/KnockOnWood.test.js",
+        "test-inspect": "yarn format && npx webpack --env test && node --inspect-brk build/KnockOnWood.test.js"
     },
     "prettier": {
         "semi": false,

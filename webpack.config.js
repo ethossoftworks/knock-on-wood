@@ -1,10 +1,11 @@
 const path = require("path")
 const { CleanWebpackPlugin } = require("clean-webpack-plugin")
+const CopyWebpackPlugin = require("copy-webpack-plugin")
 
 const packageName = "KnockOnWood"
 
 const prodConfig = {
-    entry: `./src/${packageName}.ts`,
+    entry: `./src/index.ts`,
     devtool: "source-map",
     mode: "production",
     module: {
@@ -19,10 +20,18 @@ const prodConfig = {
     resolve: {
         extensions: [".tsx", ".ts", ".js", ".jsx"],
     },
-    plugins: [new CleanWebpackPlugin()],
+    plugins: [
+        new CleanWebpackPlugin(),
+        new CopyWebpackPlugin({
+            patterns: [
+                { from: path.resolve(__dirname, "package.json"), to: "./" },
+                { from: path.resolve(__dirname, "README.md"), to: "./" },
+                { from: path.resolve(__dirname, "LICENSE"), to: "./" },
+            ],
+        }),],
     output: {
         filename: `${packageName}.js`,
-        path: path.resolve(__dirname, "dist"),
+        path: path.resolve(__dirname, "build"),
         library: "KnockOnWood",
         libraryTarget: "umd",
         globalObject: "this",
@@ -37,7 +46,7 @@ const testConfig = {
         target: "node",
         output: {
             filename: `${packageName}.test.js`,
-            path: path.resolve(__dirname, "dist"),
+            path: path.resolve(__dirname, "build"),
         },
     },
 }
