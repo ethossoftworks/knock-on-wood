@@ -1,141 +1,153 @@
-import { fmt, Text as Format } from "./Format"
+import { Logger, Format } from "./Logger"
 
-export type TestGroup<C> = {
-    context: C
-    tests: Tests<C>
-    label?: string
-    beforeEach?: (context: C) => Promise<void>
-    afterEach?: (context: C) => Promise<void>
-    beforeAll?: (context: C) => Promise<void>
-    afterAll?: (context: C) => Promise<void>
+type Test = () => Promise<any> | any
+
+class TestRunnerContext {
+    totalGroups: number = 0
+    totalTests: number = 0
+    totalPassed: number = 0
+    groupTests: number = 0
+    groupPassed: number = 0
+    currentGroupNumber: number = 0
+    currentTestNumber: number = 0
+
+    tests: Map<string, Test> = new Map()
+    onlyTests: Map<string, Test> = new Map()
+
+    beforeEach?: () => Promise<void> | void = undefined
+    afterEach?: () => Promise<void> | void = undefined
+    beforeAll?: () => Promise<void> | void = undefined
+    afterAll?: () => Promise<void> | void = undefined
+
+    clearTests() {
+        this.tests.clear()
+        this.onlyTests.clear()
+        this.beforeEach = undefined
+        this.afterEach = undefined
+        this.beforeAll = undefined
+        this.afterAll = undefined
+    }
 }
 
-export type Test<Context> = (t: TestContainer<Context>) => Promise<void>
-export type Tests<Context> = { [testName: string]: Test<Context> }
+const context = new TestRunnerContext()
 
-type TestContainer<Context> = {
-    context: Context
-    fail(reason?: string): void
-    assert(condition: boolean, failureMessage?: string): void
-}
+export async function runTests(groups: Record<string, () => void>) {
+    const allStart = new Date().getTime()
+    context.totalGroups = Object.keys(groups).length
 
-type TestResult = {
-    failed: boolean
-    reason?: string
-}
-
-class Counts {
-    totalGroups = 0
-    totalTests = 0
-    totalPassed = 0
-    groupTests = 0
-    groupPassed = 0
-    currentGroupNumber = 0
-    currentTestNumber = 0
-}
-
-export async function runTests(...testGroups: TestGroup<any>[]) {
-    const counts = new Counts()
-    counts.totalGroups = testGroups.length
-
-    for (let i = 0; i < testGroups.length; i++) {
-        counts.currentGroupNumber = i + 1
-        await runGroup(counts, testGroups[i])
+    for (const [groupName, group] of Object.entries(groups)) {
+        await runGroup(groupName, group)
     }
 
-    console.log(
-        fmt(
-            `\nFinished all test groups: ${counts.totalPassed} of ${counts.totalTests} tests passed`,
-            counts.totalPassed === counts.totalTests ? Format.green : Format.red,
-            Format.bold,
-            Format.inverse
-        )
+    Logger.log(
+        `Finished all tests. ${context.totalPassed}/${context.totalTests} passed (${Math.round(
+            new Date().getTime() - allStart
+        )}ms)`,
+        context.totalPassed === context.totalTests ? Format.green : Format.red,
+        Format.bold
     )
-
-    if (counts.totalPassed !== counts.totalTests) {
-        throw -1
-    }
 }
 
-async function runGroup<C>(counts: Counts, group: TestGroup<C>) {
-    const testNames: string[] = (() => {
-        const singleTests: string[] = Object.getOwnPropertyNames(group.tests).filter(testName => {
-            return testName.indexOf("_") === 0
-        })
-        return singleTests.length > 0 ? singleTests : Object.getOwnPropertyNames(group.tests)
-    })()
-    const context = group.context
-    counts.totalTests += testNames.length
-    counts.groupTests = testNames.length
-    counts.groupPassed = 0
+async function runGroup(groupName: string, group: () => void) {
+    context.clearTests()
+    group()
 
-    console.group(
-        `Running Group (${counts.currentGroupNumber} of ${counts.totalGroups})${group.label ? ": " + group.label : ""}`
-    )
+    const groupStart = new Date().getTime()
+    const tests = context.onlyTests.size > 0 ? context.onlyTests : context.tests
+    context.currentGroupNumber += 1
+    context.currentTestNumber = 0
+    context.totalTests += tests.size
+    context.groupTests = tests.size
+    context.groupPassed = 0
 
-    await group.beforeAll?.(context)
+    console.group(`${groupName} (${context.currentGroupNumber}/${context.totalGroups})`)
 
-    for (let i = 0; i < testNames.length; i++) {
-        counts.currentTestNumber = i + 1
+    await context.beforeAll?.()
 
-        await group.beforeEach?.(context)
-        await runTest(counts, testNames[i], group.tests[testNames[i]], context)
-        await group.afterEach?.(context)
+    for (const [testName, testBlock] of tests.entries()) {
+        await runTest(testName, testBlock)
     }
 
-    await group.afterAll?.(context)
+    await context.afterAll?.()
 
+    Logger.log(
+        `Finished group '${groupName}': ${context.groupPassed} of ${tests.size} tests passed (${Math.round(
+            new Date().getTime() - groupStart
+        )}ms)`,
+        context.groupPassed === tests.size ? Format.green : Format.red
+    )
     console.groupEnd()
-    console.log(
-        fmt(
-            `Finished group: ${counts.groupPassed} of ${testNames.length} tests passed`,
-            counts.groupPassed === testNames.length ? Format.green : Format.red
-        )
-    )
 }
 
-async function runTest<C>(counts: Counts, testName: string, test: Test<C>, context: C) {
-    const testResult: TestResult = { failed: false }
-    const testContainer = createTestContainer(context, testResult)
+async function runTest(testName: string, test: Test) {
+    const testStart = new Date().getTime()
+    context.currentTestNumber += 1
 
     try {
-        console.groupCollapsed(`Running Test (${counts.currentTestNumber} of ${counts.groupTests}): ${testName}`)
-        await test(testContainer)
+        await context.beforeEach?.()
+        await test()
+        await context.afterEach?.()
+        context.totalPassed += 1
+        context.groupPassed += 1
 
-        if (!testResult.failed) {
-            counts.groupPassed++
-            counts.totalPassed++
-            console.groupEnd()
-            console.log(fmt(`\u2713 Passed:  ${testName}`, Format.green))
-        } else {
-            handleFailedTest(testName, testResult.reason)
-        }
+        Logger.log(
+            `\u2713 ${testName} (${Math.round(new Date().getTime() - testStart)}ms) (${context.currentTestNumber}/${
+                context.groupTests
+            })`,
+            Format.green
+        )
     } catch (e) {
-        handleFailedTest(testName, e)
-    }
-}
-
-function createTestContainer<C>(context: C, result: TestResult): TestContainer<C> {
-    return {
-        context: context,
-        fail: (reason?: string) => {
-            result.failed = true
-            result.reason = reason
-        },
-        assert: (condition, failureMessage) => {
-            if (!condition) {
-                result.failed = true
-                result.reason = failureMessage
+        const errorContent = ((e: Error): string => {
+            const prelude = `\n    \u21B3 `
+            if (e instanceof TestFailure) {
+                return e.message !== "" ? `${prelude}${e.message}` : ""
+            } else {
+                return `${prelude}${e}`
             }
-        }
+        })(e)
+
+        Logger.error(
+            `\u2717 ${testName} (${Math.round(new Date().getTime() - testStart)}ms) (${context.currentTestNumber}/${
+                context.groupTests
+            })${errorContent}`,
+            Format.red
+        )
     }
 }
 
-function handleFailedTest(testName: string, reason?: string | Error) {
-    console.groupEnd()
-    console.groupCollapsed(fmt(`\u2717 Failed:  ${testName}`, Format.red))
-    if (reason) {
-        console.log(reason)
+export const beforeEach = (func: () => Promise<void> | void) => (context.beforeEach = func)
+export const afterEach = (func: () => Promise<void> | void) => (context.afterEach = func)
+export const beforeAll = (func: () => Promise<void> | void) => (context.beforeAll = func)
+export const afterAll = (func: () => Promise<void> | void) => (context.afterAll = func)
+
+export const test = async (testName: string, test: Test) => {
+    if (context.tests.has(testName)) throw new DuplicateTestError(testName)
+    context.tests.set(testName, test)
+}
+
+export const _test = async (testName: string, test: Test) => {
+    if (context.onlyTests.has(testName)) throw new DuplicateTestError(testName)
+    context.onlyTests.set(testName, test)
+}
+
+export function fail(message?: string) {
+    throw new TestFailure(message)
+}
+
+export function expect(value: any, assert: any, message?: string) {
+    if (value !== assert) throw new TestFailure(message)
+}
+
+export const assert = (condition: boolean, message?: string) => expect(condition, true, message)
+
+export class DuplicateTestError extends Error {
+    constructor(testName: string) {
+        super(`Test "${testName}" already exists.`)
     }
-    console.groupEnd()
+}
+
+export class TestFailure extends Error {
+    constructor(message?: string) {
+        super(message)
+    }
 }
