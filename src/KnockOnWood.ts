@@ -103,6 +103,7 @@ async function runTest(testName: string, test: Test) {
         )
     } catch (e) {
         const errorContent = ((e: Error): string => {
+            // const prelude = `\n  \u2514\u2500 `
             const prelude = `\n    \u21B3 `
             if (e instanceof TestFailure) {
                 return e.message !== "" ? `${prelude}${e.message}` : ""
