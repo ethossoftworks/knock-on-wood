@@ -1,5 +1,4 @@
 import {
-    runTests,
     test,
     assert,
     fail,
@@ -12,7 +11,7 @@ import {
     afterAll,
 } from "./KnockOnWood"
 
-function group1() {
+export function group1() {
     const test1: number = 1
     const test2: number = 2
 
@@ -37,7 +36,7 @@ function group1() {
     })
 }
 
-function group2() {
+export function group2() {
     _test("Only Test", () => {})
     test("This shouldn't run 2", () => {})
     test("This shouldn't run 3", () => {})
@@ -47,7 +46,7 @@ let beforeEachCount = 0
 let afterEachCount = 0
 let allCount = 0
 
-function callbacksGroup() {
+export function callbacksGroup() {
     beforeEach(async () => {
         await new Promise((resolve) => setTimeout(resolve, 250))
         beforeEachCount++
@@ -84,12 +83,10 @@ function callbacksGroup() {
     })
 }
 
-function postCallbackGroup() {
+export function postCallbackGroup() {
     test("Callbacks Reset", () => {
         expect(beforeEachCount, 3, "Before Each count was wrong")
         expect(afterEachCount, 3, "After Each count was wrong")
         expect(allCount, 0, "All Count was wrong")
     })
 }
-
-runTests({ "Group 1": group1, "Group 2": group2, Callbacks: callbacksGroup, "Post Callbacks": postCallbackGroup })

@@ -5,6 +5,7 @@ A simple testing framework for TypeScript
 * [Build](#build)
 * [Usage](#usage)
 * [Motivation](#motivation)
+* [Release Notes](#release-notes)
 
 # Features
 * Use in Node.JS or in the browser
@@ -154,3 +155,10 @@ I test a lot of asynchronous code and with Async/Await it doesn't hurt to simply
 
 ## This Works In The Browser?
 Sure. Why not? Sometimes it's just easier test things in the browser without dealing with Node.JS (i.e. DOM access or browser APIs). I didn't see the need to force users to use Node.JS to use this framework. They are welcome to, but I didn't want to box anyone into a corner. Not including Node.JS specific dependencies allows Knock-On-Wood to be more flexible.
+
+# Release Notes
+## 2.0.1
+* Converted build system to rollup
+
+## 2.0.0
+* New API design
