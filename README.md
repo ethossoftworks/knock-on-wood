@@ -187,6 +187,11 @@ Sure. Why not? Sometimes it's just easier test things in the browser without dea
 
 # Release Notes
 
+## 2.1.0
+
+-   Added alternate `runTests` constructor
+-   Added `group` method
+
 ## 2.0.1
 
 -   Converted build system to rollup
