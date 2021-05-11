@@ -1,6 +1,6 @@
 import { Logger, Format } from "./Logger"
 
-type Test = () => Promise<any> | any
+type Test = () => Promise<any> | unknown
 
 class TestRunnerContext {
     totalGroups: number = 0
@@ -19,6 +19,17 @@ class TestRunnerContext {
     beforeAll?: () => Promise<void> | void = undefined
     afterAll?: () => Promise<void> | void = undefined
 
+    reset() {
+        this.totalGroups = 0
+        this.totalTests = 0
+        this.totalPassed = 0
+        this.groupTests = 0
+        this.groupPassed = 0
+        this.currentGroupNumber = 0
+        this.currentTestNumber = 0
+        this.clearTests()
+    }
+
     clearTests() {
         this.tests.clear()
         this.onlyTests.clear()
@@ -36,12 +47,21 @@ const context = new TestRunnerContext()
  *
  * @param groups The groups of tests to run
  */
-export async function runTests(groups: Record<string, () => void>) {
+export async function runTests(
+    groups: Record<string, () => Promise<void> | unknown> | { name: string; block: () => Promise<void> | unknown }[]
+) {
     const allStart = new Date().getTime()
-    context.totalGroups = Object.keys(groups).length
+    context.reset()
+    context.totalGroups = Array.isArray(groups) ? groups.length : Object.keys(groups).length
 
-    for (const [groupName, group] of Object.entries(groups)) {
-        await runGroup(groupName, group)
+    if (Array.isArray(groups)) {
+        for (const group of groups) {
+            await runGroup(group.name, group.block)
+        }
+    } else {
+        for (const [groupName, group] of Object.entries(groups)) {
+            await runGroup(groupName, group)
+        }
     }
 
     Logger.log(
@@ -53,9 +73,9 @@ export async function runTests(groups: Record<string, () => void>) {
     )
 }
 
-async function runGroup(groupName: string, group: () => void) {
+async function runGroup(groupName: string, group: () => Promise<void> | unknown) {
     context.clearTests()
-    group()
+    await group()
 
     const groupStart = new Date().getTime()
     const tests = context.onlyTests.size > 0 ? context.onlyTests : context.tests
@@ -141,6 +161,14 @@ export const beforeAll = (func: () => Promise<void> | void) => (context.beforeAl
  * @param func
  */
 export const afterAll = (func: () => Promise<void> | void) => (context.afterAll = func)
+
+/**
+ * Enqueue a group of tests to be run
+ *
+ * @param groupName The user-friendly group name
+ * @param block The function to run to generate tests
+ */
+export const group = (groupName: string, block: () => Promise<void> | unknown) => ({ name: groupName, block: block })
 
 /**
  * Enqueue a test to be run
