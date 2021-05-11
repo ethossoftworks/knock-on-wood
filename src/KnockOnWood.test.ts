@@ -9,6 +9,7 @@ import {
     afterEach,
     beforeAll,
     afterAll,
+    group,
 } from "./KnockOnWood"
 
 export function group1() {
@@ -24,8 +25,8 @@ export function group1() {
     test("Fail No Message", () => fail())
     test("Duplicate Test Name Pass", async () => {
         try {
-            await test("This shouldn't run 1", () => {})
-            await test("This shouldn't run 1", () => {})
+            await test("Duplicate Nested Test Name Pass", async () => {})
+            await test("Duplicate Nested Test Name Pass", async () => {})
             fail("No DuplicateTestError thrown")
         } catch (e) {
             if (!(e instanceof DuplicateTestError)) fail("Wrong error thrown")
@@ -37,9 +38,9 @@ export function group1() {
 }
 
 export function group2() {
-    _test("Only Test", () => {})
-    test("This shouldn't run 2", () => {})
-    test("This shouldn't run 3", () => {})
+    _test("Only Test", async () => {})
+    test("This shouldn't run 2", async () => {})
+    test("This shouldn't run 3", async () => {})
 }
 
 let beforeEachCount = 0
@@ -64,19 +65,19 @@ export function callbacksGroup() {
         allCount -= 1
     })
 
-    test("one", () => {
+    test("one", async () => {
         expect(beforeEachCount, 1, "Before Each count was wrong")
         expect(afterEachCount, 0, "After Each count was wrong")
         expect(allCount, 1, "All Count was wrong")
     })
 
-    test("two", () => {
+    test("two", async () => {
         expect(beforeEachCount, 2, "Before Each count was wrong")
         expect(afterEachCount, 1, "After Each count was wrong")
         expect(allCount, 1, "All Count was wrong")
     })
 
-    test("three", () => {
+    test("three", async () => {
         expect(beforeEachCount, 3, "Before Each count was wrong")
         expect(afterEachCount, 2, "After Each count was wrong")
         expect(allCount, 1, "All Count was wrong")
@@ -84,9 +85,21 @@ export function callbacksGroup() {
 }
 
 export function postCallbackGroup() {
-    test("Callbacks Reset", () => {
+    test("Callbacks Reset", async () => {
         expect(beforeEachCount, 3, "Before Each count was wrong")
         expect(afterEachCount, 3, "After Each count was wrong")
         expect(allCount, 0, "All Count was wrong")
     })
 }
+
+export const alternateConstructorGroup1 = group("Alternate Constructor Test 1", () => {
+    test("Pass", async () => {})
+    test("Fail", async () => fail())
+})
+
+export const alternateConstructorGroup2 = group("Alternate Constructor Test 2", async () => {
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+    test("Pass", async () => {})
+    test("Fail", async () => fail())
+    test("Pass 2", async () => {})
+})
